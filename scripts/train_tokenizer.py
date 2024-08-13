@@ -1,4 +1,4 @@
-from tokenizer import GPT2Tokenizer
+from gpt2 import GPT2Tokenizer
 from datasets import load_dataset
 from tqdm import tqdm
 import time
