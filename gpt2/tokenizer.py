@@ -117,11 +117,12 @@ class Tokenizer:
                 else:
                     file.write(f'[{s}] {idx}\n')
 
-
     def load(self, file_name):
         """
         Loads file_name.model and builds vocab, ie load tokenizer.
         """
+
+        print(f'Loading tokenizer from {file_name}')
 
         assert file_name.endswith(".model")
         merges = {}
@@ -150,6 +151,13 @@ class Tokenizer:
         self.special_tokens = special_tokens
         self.pattern = pattern
         self.vocab = self._build_vocab()
+
+    @classmethod        # decorator for method to be called directly on the class rather than the object
+    def from_pretrained(cls, file_name):        # to reproduce usual behavior, but not accessing cloud file, just local
+        instance = cls()
+        instance.load(file_name)
+        return instance
+
 
 class GPT2Tokenizer(Tokenizer):
     """ GPT2 Tokenizer Class, infant Tokenizer class to reproduce GPT2 """
