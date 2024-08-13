@@ -190,7 +190,7 @@ class GPT2Tokenizer(Tokenizer):
             self.merges = merges
             self.vocab = vocab
 
-    def register_special_token(self, special_tokens):
+    def register_special_tokens(self, special_tokens):
         """
         Registers all special tokens at once.
         """
@@ -266,7 +266,7 @@ class GPT2Tokenizer(Tokenizer):
         if special == {}:
             return self.encode_ordinary(text)
         
-        special_pattern = '(' + "|".join(re.escape(special_token) for special_token in special)            # finding all special tokens in the text based on a matching - re.escape helps handling special char such as '['
+        special_pattern = '(' + "|".join(re.escape(special_token) for special_token in special) + ')'      # finding all special tokens in the text based on a matching - re.escape helps handling special char such as '['
         split_chunks = re.split(special_pattern, text)                                                     # text is split such as to separate special tokens from regular
 
         text_ids = []
