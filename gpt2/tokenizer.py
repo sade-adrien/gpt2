@@ -288,8 +288,7 @@ class GPT2Tokenizer(Tokenizer):
                 text_ids.extend(self.encode_ordinary(chunk))
         
         return text_ids
-
-    
+ 
     def encode(self, texts: Union[str, List[str]], allowed_special="none_raise", return_tensors=False, device='cpu'):
         """
         Wrapper of self._encode to deal with list of text, and return tensors.

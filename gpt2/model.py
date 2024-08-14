@@ -10,13 +10,13 @@ import torch.nn as nn
 import torch
 import math
 
-@dataclass                      # automatically creates base methods (such as __init__, or __repr__)
+@dataclass                       # automatically creates base methods (such as __init__, or __repr__)
 class GPT2Config:
-    block_size: int = 256       # context window
-    vocab_size: int = 65        # vocabulary size
-    n_layer: int = 6            # nb of transformer blocks
-    n_head: int = 6             # nb of attention heads in MHA
-    n_embd: int = 384           # hidden size of transformers
+    block_size: int = 1024       # context window
+    vocab_size: int = 50_304     # vocabulary size
+    n_layer: int = 12            # nb of transformer blocks
+    n_head: int = 12             # nb of attention heads in MHA
+    n_embd: int = 768            # hidden size of transformers
 
 
 class CausalSelfAttention(nn.Module):
@@ -28,6 +28,7 @@ class CausalSelfAttention(nn.Module):
         self.n_head = self.config.n_head
         self.c_attn = nn.Linear(self.config.n_embd, 3 * self.config.n_embd)             # q,k,v for all heads
         self.c_proj = nn.Linear(self.config.n_embd, self.config.n_embd)                 # output proj
+        self.c_proj.SPECIFIC_SCALE_INIT = (2 * self.config.n_layer) ** -0.5
 
         self.register_buffer(
                         'bias',                                                         # not a bias, name is ill-chosen (`mask_tril` would be better but we keep original for name matching)                                                         
@@ -96,9 +97,9 @@ class Block(nn.Module):
 class GPT2(nn.Module):
     """ GPT2 model class """
 
-    def __init__(self, config):
+    def __init__(self, config=None):
         super().__init__()
-        self.config = config
+        self.config = GPT2Config() if config is None else config
         self.transformer = nn.ModuleDict(
             {
                 'wte': nn.Embedding(self.config.vocab_size, self.config.n_embd),
@@ -110,6 +111,11 @@ class GPT2(nn.Module):
             }
         )
         self.lm_head = nn.Linear(self.config.n_embd, self.config.vocab_size, bias=False)
+
+        # weight sharing scheme, research has since then adopted different weights, but for small model and training we hypothesis that this simplifies training
+        self.transformer.wte.weight = self.lm_head.weight
+
+        self.apply(self._init_weights ) 
 
     def forward(self, input_ids, targets=None):
         B, T = input_ids.shape
@@ -132,6 +138,14 @@ class GPT2(nn.Module):
 
         return logits, loss
 
+    def _init_weights(self, module):
+        if isinstance(module, (nn.Linear, nn.Embedding)):
+            std = 0.02
+            if hasattr(module, 'SPECIFIC_SCALE_INIT'):
+                std *= module.SPECIFIC_SCALE_INIT
+            torch.nn.init.normal_(module.weight, mean=.0, std=std)
+            if hasattr(module, 'bias') and module.bias is not None:
+                torch.nn.init.zeros_(module.bias) 
 
     def generate(self, input_ids, max_new_tokens=100, do_sample=False, topk=50):
         if isinstance(input_ids, list):

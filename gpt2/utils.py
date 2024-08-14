@@ -7,15 +7,13 @@ from .tokenizer import GPT2Tokenizer
 class DataLoaderLite:
     """ Data loader for data batch loading """
 
-    def __init__(self, B, T):
+    def __init__(self, B, T, tokenizer):
         self.B = B
         self.T = T
 
         with open('data/shakespear_data.txt', 'r') as file:
             data = file.read()
         
-        tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_c4.model')
-
         self.tokens = tokenizer.encode(data, return_tensors=True)[0]        # (B=1, T=whole_file_tokenized)
 
         print(f'Loaded {self.tokens.shape[-1]} tokens.')
