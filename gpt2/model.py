@@ -111,7 +111,7 @@ class GPT2(nn.Module):
         )
         self.lm_head = nn.Linear(self.config.n_embd, self.config.vocab_size, bias=False)
 
-    def forward(self, input_ids):
+    def forward(self, input_ids, targets=None):
         B, T = input_ids.shape
         assert T <= self.config.block_size, f"Input sequence is too large ({T} > {self.config.block_size})."
 
@@ -126,7 +126,12 @@ class GPT2(nn.Module):
         x = self.transformer.ln_f(x)
         logits = self.lm_head(x)
 
-        return logits
+        loss = None
+        if targets is not None:
+            loss = F.cross_entropy(logits.view(-1, logits.shape[-1]), targets.view(-1))      # flatten on batch/seq logits before evaluation, targets is only tokens
+
+        return logits, loss
+
 
     def generate(self, input_ids, max_new_tokens=100, do_sample=False, topk=50):
         if isinstance(input_ids, list):
@@ -201,5 +206,3 @@ class GPT2(nn.Module):
                     sd[k].copy_(sd_hf[k])
 
         return model
-
-

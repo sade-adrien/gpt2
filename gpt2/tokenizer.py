@@ -2,8 +2,10 @@
 Define Tokenizer class (base) and the GPT2Tokenizer class wrapper to implement specific behavior of GPT2 Tokenizer.
 """
 
+from typing import Union, List
 import regex as re
 import unicodedata
+import torch
 
 GPT2_SPLIT_PATTERN = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
 GPT4_SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
@@ -252,7 +254,7 @@ class GPT2Tokenizer(Tokenizer):
             text_ids.extend(self._encode_chunks(chunk_bytes))
         return text_ids
 
-    def encode(self, text, allowed_special="none_raise"):
+    def _encode(self, text, allowed_special="none_raise"):
         """
         Encodes text with handling of special tokens.
         allowed_special = "none_raise" | "all" | "none"
@@ -287,7 +289,22 @@ class GPT2Tokenizer(Tokenizer):
         
         return text_ids
 
-
+    
+    def encode(self, texts: Union[str, List[str]], allowed_special="none_raise", return_tensors=False, device='cpu'):
+        """
+        Wrapper of self._encode to deal with list of text, and return tensors.
+        """
         
+        if isinstance(texts, str):
+            texts = [texts]
 
+        texts_ids = []
+        for text in texts:
+            texts_ids.append(self._encode(text, allowed_special))
+        
+        if return_tensors:
+            assert all(len(tid) == len(texts_ids[0]) for tid in texts_ids), 'To return tensor, make sure all elements have same sequence length - padding not implemented yet.'
+            texts_ids = torch.tensor(texts_ids, dtype=torch.long, device=device)
+        
+        return texts_ids
 
