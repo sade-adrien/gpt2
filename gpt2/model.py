@@ -48,11 +48,13 @@ class CausalSelfAttention(nn.Module):
         k = k.view(B,  T, self.config.n_head, C // self.config.n_head).transpose(1, 2)   # (B, nH, T, Hs)
         v = v.view(B, T, self.config.n_head, C // self.config.n_head).transpose(1, 2)   # (B, nH, T, Hs)
 
-        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.shape[-1]))                # (B, nH, T, T)
-        att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
-        att = F.softmax(att, dim=-1)
-
-        y = att @ v                                                                     # (B, nH, T, Hs)
+        # we replace the manual attention implementation by pytorch's to enable flash-attention's kernel fusion when compiling
+        # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.shape[-1]))                # (B, nH, T, T)
+        # att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+        # att = F.softmax(att, dim=-1)
+        # y = att @ v  
+        y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+                                                                           # (B, nH, T, Hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C)                                # (B, T, C) re-assemble heads
         
         y = self.c_proj(y)
