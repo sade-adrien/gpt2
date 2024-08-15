@@ -119,12 +119,12 @@ class Tokenizer:
                 else:
                     file.write(f'[{s}] {idx}\n')
 
-    def load(self, file_name):
+    def load(self, file_name, verbose=False):
         """
         Loads file_name.model and builds vocab, ie load tokenizer.
         """
-
-        print(f'Loading tokenizer from {file_name}')
+        if verbose:
+            print(f'Loading tokenizer from {file_name}')
 
         assert file_name.endswith(".model")
         merges = {}
