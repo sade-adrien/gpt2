@@ -1,8 +1,9 @@
 """
-Implement useful classes.
+Implement useful classes and functions.
 """
 
 from .tokenizer import GPT2Tokenizer
+import math
 
 class DataLoaderLite:
     """ Data loader for data batch loading """
@@ -32,3 +33,19 @@ class DataLoaderLite:
             self.current_position = 0
         
         return input_ids, targets
+
+
+def get_lr(step, warmup_steps, max_steps, min_lr, max_lr):
+    # linear warmup
+    if step < warmup_steps:
+        return max_lr * ((step + 1) / warmup_steps)
+    
+    # revert to min lr after optim
+    if step > max_steps:
+        return min_lr
+
+    # in between, cosine decay
+    decay_ratio = (step - warmup_steps) / (max_steps - warmup_steps)
+    assert 0 <= decay_ratio <= 1
+    coeff = 0.5 * (1. + math.cos(math.pi * decay_ratio))
+    return min_lr + coeff * (max_lr - min_lr)

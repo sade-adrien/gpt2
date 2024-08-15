@@ -7,13 +7,14 @@ this architecture is an almost perfectly direct legacy of the original GPT.
 from torch.nn import functional as F
 from dataclasses import dataclass
 import torch.nn as nn
+import inspect
 import torch
 import math
 
 @dataclass                       # automatically creates base methods (such as __init__, or __repr__)
 class GPT2Config:
     block_size: int = 1024       # context window
-    vocab_size: int = 50_304     # vocabulary size
+    vocab_size: int = 50_257     # vocabulary size
     n_layer: int = 12            # nb of transformer blocks
     n_head: int = 12             # nb of attention heads in MHA
     n_embd: int = 768            # hidden size of transformers
@@ -222,3 +223,29 @@ class GPT2(nn.Module):
                     sd[k].copy_(sd_hf[k])
 
         return model
+
+    def configure_optimizer(self, weight_decay, learning_rate, device, betas=(0.9, 0.999), eps=1e-8, verbose=False):
+        params_dict = {n: p for n,p in self.named_parameters() if p.requires_grad}
+
+        # we flag weight tensors in matmuls and embeddings as they have more than 1 dim
+        decay_params = [p for n,p in params_dict.items() if p.dim() >= 2]
+        # conversely, bias and layernorm have a max dim of 1
+        nodecay_params = [p for n,p in params_dict.items() if p.dim() < 2] 
+
+        optim_groups = [
+            {'params': decay_params, 'weight_decay': weight_decay},
+            {'params': nodecay_params, 'weight_decay': .0},
+        ]
+
+        # fuse optimizer if available
+        fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
+        use_fused = fused_available and ('cuda' in device)
+
+        optimizer = torch.optim.AdamW(optim_groups, lr=learning_rate, betas=betas, eps=eps, fused=use_fused)
+
+        if verbose:
+            print(f'nb decay parameter = {sum(p.numel() for p in decay_params):.3e}')
+            print(f'nb non-decay parameter = {sum(p.numel() for p in nodecay_params):.3e}')
+            print(f"using fused AdamW: {use_fused}")
+        
+        return optimizer
