@@ -11,8 +11,8 @@ import time
 
 ##################################################################################################
 
-gpt2config = GPT2Config(vocab_size=50_304)
-global_batch = 524_288          # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number
+gpt2config = GPT2Config(vocab_size=50_304)      # round-up vocab_size to a dense-power-of-2 number for efficient computations
+global_batch = 524_288                          # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number
 B = 16
 T = 1024
 max_steps = 50
