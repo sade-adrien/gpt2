@@ -234,7 +234,7 @@ class GPT2Tokenizer(Tokenizer):
         bytes_ids = list(bytes_text)
         while len(bytes_ids) >= 2:
             stats = get_stats(bytes_ids)
-            min_pair = min(stats, key=lambda p: stats.get(p, float('inf')))     # select the pair with lowest merging opportunities
+            min_pair = min(stats, key=lambda p: self.merges.get(p, float('inf')))     # select the pair with lowest merging opportunities
             if min_pair not in self.merges:
                 break                                                           # stop merging if no more merging opportunities
 
@@ -270,7 +270,7 @@ class GPT2Tokenizer(Tokenizer):
             special = {}
         elif allowed_special == 'none_raise':
             special = {}
-            assert all(token not in text for token in self.special_tokens)
+            assert all(token not in text for token in self.special_tokens), 'Make sure to allow special token if there are some in your prompt: allowed_special=`all`.'
         else:
             raise ValueError(f"`{allowed_special=}` not recognized, select [`none_raise`, `all`, `none`]")
         
@@ -299,7 +299,7 @@ class GPT2Tokenizer(Tokenizer):
 
         texts_ids = []
         for text in texts:
-            texts_ids.append(self._encode(text, allowed_special))
+            texts_ids.append(self._encode(text, allowed_special=allowed_special))
         
         if return_tensors:
             assert all(len(tid) == len(texts_ids[0]) for tid in texts_ids), 'To return tensor, make sure all elements have same sequence length - padding not implemented yet.'
