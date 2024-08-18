@@ -17,6 +17,7 @@ tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_slimpajama.model')
 # tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_slimpajama.model')
 
 # register end of sentence/doc token (overide last one to no change the vocab size that was carefully selected)
+# we need those two lines bc my stupid-ass forgot to include it when training the tokenizer
 tokenizer.register_special_tokens({'<|endoftext|>': 50_303})        
 tokenizer.vocab = tokenizer._build_vocab()
 eot = 50_303
