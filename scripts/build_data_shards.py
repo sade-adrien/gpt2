@@ -13,7 +13,7 @@ total_tokens = 10_000_000_000
 
 dataset = load_dataset('cerebras/SlimPajama-627B', split='train', streaming=True)
 
-tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_slimpajama.model')
+tokenizer = GPT2Tokenizer.from_pretrained('weights/gpt2tokenizer_slimpajama.model')
 eot = 50_303
 
 def tokenize(doc):

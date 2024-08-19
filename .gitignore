@@ -1,1 +1,3 @@
 data/*.npy
+weights/*.pt
+nohup.out

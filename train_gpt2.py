@@ -1,3 +1,9 @@
+"""
+Script to train a GPT2 model with the SlimPajama dataset and using a pre-trained GPT2Tokenizer (re-implemantation).
+Script can be run with `python train_gpt2.py` if not using DDP (ensure use_DDP=False).
+If using DDP, run with `torchrun --standalone --nproc_per_node=2 train_gpt2.py` (and change the nb of gpu/node accordingly).
+"""
+
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0,2'
 
@@ -8,6 +14,7 @@ import torch.nn as nn
 from gpt2 import *
 import torch
 import time
+import json
 
 ##################################################################################################
 
@@ -16,17 +23,18 @@ global_batch = 524_288                          # global batch size to fit gpt2 
 B = 64
 T = 1024
 max_steps = 50                                  # 19_073 # 19073 is ~1 epoch for a global batch of .5M and a dataset of 10B tokens
-max_eval_steps = 10                             # evaluation steps to perform (eval file is 100M tokens)
-eval_steps = 500                                # frequency of evaluation
+max_val_steps = 10                             # evaluation steps to perform (eval file is 100M tokens)
+val_steps = 500                                # frequency of evaluation
+save_steps = 5                              # frequency of checkpoint saving
+save_dir = 'weights/'                           # directory for model/log saving
 log_steps = 1                                   # frequency of logs
-save_steps = 2_000                              # frequency of checkpoint saving
+log_file = save_dir + 'logs.json'               # json for easy parsing
 warmup_steps = 5
 max_lr = 6e-4
 min_lr = max_lr / 10
 betas = (.9, .95)
 eps = 1e-8
 weight_decay = 0.1
-
 ##################################################################################################
 # to run with DDP, use command: torchrun --standalone --nproc_per_node=2 train_gpt2.py
 use_DDP = True
@@ -62,6 +70,10 @@ else:
 # however grad_acc_steps depends of the DDP_world_size defined here
 assert global_batch % (B * T * DDP_world_size) == 0, 'ensure coherence between micro batch and global batch'
 gradient_accumulation_steps = global_batch // (B * T * DDP_world_size)
+
+# open for writing to clear the log file
+with open(log_file, "w") as file:
+    pass
 ##################################################################################################
 
 
@@ -72,7 +84,7 @@ def main():
         model = DDP(model, device_ids=[DDP_local_rank])
     raw_model = model.module if use_DDP else model
 
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_slimpajama.model') 
+    tokenizer = GPT2Tokenizer.from_pretrained('weights/gpt2tokenizer_slimpajama.model') 
     train_dataloader = DataLoaderLite(B=B , T=T, tokenizer=tokenizer, split='train', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
     val_dataloader = DataLoaderLite(B=B , T=T, tokenizer=tokenizer, split='val', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
     optimizer = raw_model.configure_optimizer(weight_decay=weight_decay, learning_rate=max_lr, betas=betas, eps=eps, device=device)
@@ -83,11 +95,11 @@ def main():
     for step in range(max_steps):
 
         # eval loop
-        eval_loss = None
-        if (step % eval_steps == 0) or (step == max_steps - 1):
-            eval_loss = run_eval(model, val_dataloader)
+        val_loss = None
+        if (step % val_steps == 0) or (step == max_steps - 1):
+            val_loss = run_eval(model, val_dataloader)
             if master_process:
-                print(f'Validation Loss = {eval_loss:.6f}')
+                print(f'Validation Loss = {val_loss:.6f}')
 
         # run 1 training step
         start = time.time()
@@ -129,6 +141,14 @@ def main():
 
         if master_process:
             print(f'step {step}: {lr=:.6f}, loss={loss_accumulation.item():.6f}, {dt=:.2f}s, {tokens_per_sec=:,}')
+        
+        # update logs
+        if master_process and (step % log_steps == 0):
+            save_log(step, lr, norm, loss_accumulation, val_loss)
+        
+        # save checkpoint
+        if master_process and step > 0 and (step % save_steps == 0 or step == max_steps - 1):
+            save_checkpoint(raw_model, optimizer, step, val_loss, lr)
 
     # killing DDP processes cleanly
     if DDP:
@@ -157,14 +177,60 @@ def run_eval(model, dataloader):
 
     with torch.no_grad():
         loss_accumulation = .0
-        for _ in range(max_eval_steps):
+        for _ in range(max_val_steps):
             loss = run_micro_step(model, dataloader, device)
-            loss_accumulation += loss.detach() / max_eval_steps
+            loss_accumulation += loss.detach() / max_val_steps
         
     if use_DDP:
         dist.all_reduce(loss_accumulation, op=dist.ReduceOp.AVG)
 
     model.train()
     return loss_accumulation
+
+def save_log(step, lr, norm, train_loss, val_loss):
+    log = {
+        'step': step,
+        'tokens': step * global_batch,
+        'learning_rate': lr,
+        'gradient_norm': norm.item(),
+        'train_loss': train_loss.item(),
+        'val_loss': val_loss.item() if val_loss else None,
+    }
+
+    with open(log_file, 'r') as file:
+        try:
+            all_logs = json.load(file)
+        except (json.JSONDecodeError, ValueError):
+            all_logs = []
+    
+    all_logs.append(log)
+
+    with open(log_file, 'w') as file:
+        json.dump(all_logs, file, indent=4)
+
+def save_checkpoint(model, optimizer, step, val_loss, lr):
+    checkpoint_path = save_dir + f'model_{step:05d}.pt'
+    checkpoint = {
+        'model': model.state_dict(),
+        'config': model.config,
+        'step': step,
+        'val_loss': val_loss.item() if val_loss else None,
+        'optimizer': optimizer.state_dict(),
+        'learning_rate': {
+                        'current_lr': lr,
+                        'max_lr': max_lr,
+                        'min_lr': min_lr,
+                        'warmup_steps': warmup_steps,
+                        'max_steps': max_steps,
+                    },
+        'batch': {
+            'B': B,
+            'T': T,
+            'global_batch': global_batch,
+        }
+    }
+
+    torch.save(checkpoint, checkpoint_path)
+
 
 main()
