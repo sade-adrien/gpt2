@@ -9,17 +9,11 @@ import numpy as np
 
 local_dir = 'data/'
 shard_size = 100_000_000    # 100M tokens/shard
-total_tokens = 1_000_000_000
+total_tokens = 10_000_000_000
 
 dataset = load_dataset('cerebras/SlimPajama-627B', split='train', streaming=True)
 
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_slimpajama.model')
-# tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_slimpajama.model')
-
-# register end of sentence/doc token (overide last one to no change the vocab size that was carefully selected)
-# we need those two lines bc my stupid-ass forgot to include it when training the tokenizer
-tokenizer.register_special_tokens({'<|endoftext|>': 50_303})        
-tokenizer.vocab = tokenizer._build_vocab()
 eot = 50_303
 
 def tokenize(doc):
@@ -59,7 +53,7 @@ for data in dataset:
 
         current_shard += 1
         tokens_count_within_shard = len(tokens) - remainder
-        # if too long we just skip to avoid anoying issues
+        # if too long we just skip to avoid anoying issues, unlikely when shard_size is large
         if tokens_count_within_shard > shard_size:
             continue
         all_tokens_np[0 : tokens_count_within_shard] = tokens[remainder:]

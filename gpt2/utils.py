@@ -3,26 +3,41 @@ Implement useful classes and functions.
 """
 
 from .tokenizer import GPT2Tokenizer
+import numpy as np
+import torch
 import math
+import os
+
+def load_tokens_from_npy(file_name):
+    np_tokens = np.load(file_name).astype(np.int32)
+    pt_tokens = torch.tensor(np_tokens, dtype=torch.long)
+    return pt_tokens
 
 class DataLoaderLite:
     """ Data loader for data batch loading """
 
-    def __init__(self, B, T, tokenizer, process_rank=0, num_processes=1, verbose=False):
+    def __init__(self, B, T, tokenizer, split, master_process, process_rank=0, num_processes=1):
         self.B = B
         self.T = T
         self.process_rank = process_rank
         self.num_processes = num_processes
+        assert split in ('train', 'val')
 
-        with open('data/shakespear_data.txt', 'r') as file:
-            data = file.read()
-        
-        self.tokens = tokenizer.encode(data, return_tensors=True)[0]        # (B=1, T=whole_file_tokenized)
+        data_folder = 'data'
+        shards = os.listdir(data_folder)
+        shards = sorted([s for s in shards if split in s])
+        shards = [os.path.join(data_folder, s) for s in shards]
+        self.shards = shards
 
-        if verbose:
-            print(f'Loaded {self.tokens.shape[-1]:,} tokens.')
-
-        self.current_position = self.process_rank * self.B * self.T
+        assert len(self.shards) > 0, 'no shards found'
+        if master_process:
+            print(f'Found {len(self.shards)} shards for {split} split.')
+        self.reset()
+    
+    def reset(self):
+        self.current_shard = 0
+        self.tokens = load_tokens_from_npy(self.shards[self.current_shard])
+        self.current_position = self.B * self.T * self.process_rank
     
     def next_batch(self):
         full_batch = self.tokens[self.current_position : self.current_position + self.B * self.T + 1]
@@ -31,9 +46,13 @@ class DataLoaderLite:
 
         self.current_position += self.B * self.T * self.num_processes 
 
-        # loop when next batch is out of bound of file:
-        if self.current_position + self.B * self.T * self.num_processes + 1 >= len(self.tokens):
-            self.current_position = self.process_rank * self.B * self.T
+        # switch shard when next batch is out of bound of current shard:
+        if self.current_position + self.B * self.T * self.num_processes + 1 > len(self.tokens):
+            self.current_shard += 1
+            self.current_shard %= len(self.shards)      # loop over shards for multiple epochs
+
+            self.tokens = load_tokens_from_npy(self.shards[self.current_shard])
+            self.current_position = self.B * self.T * self.process_rank
         
         return input_ids, targets
 

@@ -13,9 +13,13 @@ import time
 
 gpt2config = GPT2Config(vocab_size=50_304)      # round-up vocab_size to a dense-power-of-2 number for efficient computations
 global_batch = 524_288                          # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number
-B = 16
+B = 64
 T = 1024
-max_steps = 50
+max_steps = 50                                  # 19_073 # 19073 is ~1 epoch for a global batch of .5M and a dataset of 10B tokens
+max_eval_steps = 10                             # evaluation steps to perform (eval file is 100M tokens)
+eval_steps = 500                                # frequency of evaluation
+log_steps = 1                                   # frequency of logs
+save_steps = 2_000                              # frequency of checkpoint saving
 warmup_steps = 5
 max_lr = 6e-4
 min_lr = max_lr / 10
@@ -63,34 +67,41 @@ gradient_accumulation_steps = global_batch // (B * T * DDP_world_size)
 
 def main():
     model = GPT2(gpt2config).to(device)                # 50_304 is dense-power-of-2 number
-    model = torch.compile(model)
+    # model = torch.compile(model)
     if use_DDP:
         model = DDP(model, device_ids=[DDP_local_rank])
     raw_model = model.module if use_DDP else model
 
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_c4.model')
-    dataloader = DataLoaderLite(B=B , T=T, tokenizer=tokenizer, process_rank=DDP_rank, num_processes=DDP_world_size)
+    tokenizer = GPT2Tokenizer.from_pretrained('gpt2tokenizer_slimpajama.model') 
+    train_dataloader = DataLoaderLite(B=B , T=T, tokenizer=tokenizer, split='train', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
+    val_dataloader = DataLoaderLite(B=B , T=T, tokenizer=tokenizer, split='val', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
     optimizer = raw_model.configure_optimizer(weight_decay=weight_decay, learning_rate=max_lr, betas=betas, eps=eps, device=device)
 
     # using tf32 matmul to speed up - use `highest` for fp32 and `medium` for bf16
     torch.set_float32_matmul_precision('high')         # we notice no consistent speed up when combined with mixed-precision on A100, autocast probably overides this                      
 
     for step in range(max_steps):
+
+        # eval loop
+        eval_loss = None
+        if (step % eval_steps == 0) or (step == max_steps - 1):
+            eval_loss = run_eval(model, val_dataloader)
+            if master_process:
+                print(f'Validation Loss = {eval_loss:.6f}')
+
+        # run 1 training step
         start = time.time()
-
-        model.train()
         optimizer.zero_grad()
-
         loss_accumulation = .0
         
         if use_DDP:
             # in case of DDP the no_sunc manager avoid sharing gradients at all micro steps, we do it only once at the end to save time
             with model.no_sync():   
                 for micro_step in range(gradient_accumulation_steps - 1):           # -1 because we perform the last on out of the no_sync context manager
-                    loss = micro_step_train(model, dataloader, device)
+                    loss = run_micro_step(model, train_dataloader, device)
                     loss_accumulation += micro_step_loss_backward(loss, gradient_accumulation_steps)
             # one micro step out of the no_sync context to share gradients between GPUs when using DDP
-            loss = micro_step_train(model, dataloader, device)
+            loss = run_micro_step(model, train_dataloader, device)
             loss_accumulation += micro_step_loss_backward(loss, gradient_accumulation_steps)
 
             # all_reduce on loss_accumulation to avg the loss from all GPUs
@@ -98,7 +109,7 @@ def main():
         
         else:
             for micro_step in range(gradient_accumulation_steps):
-                loss = micro_step_train(model, dataloader, device)
+                loss = run_micro_step(model, train_dataloader, device)
                 loss_accumulation += micro_step_loss_backward(loss, gradient_accumulation_steps)
 
         norm = nn.utils.clip_grad_norm_(model.parameters(), 1.)
@@ -113,24 +124,24 @@ def main():
         elif 'mps' in device:
             torch.mps.synchronize()
         end = time.time()
-        dt = (end - start) * 1000
-        tokens_per_sec = (dataloader.B * dataloader.T * gradient_accumulation_steps * DDP_world_size / dt * 1000)
+        dt = (end - start)
+        tokens_per_sec = (train_dataloader.B * train_dataloader.T * gradient_accumulation_steps * DDP_world_size / dt)
 
         if master_process:
-            print(f'step {step}: {lr=:.6f}, loss={loss_accumulation.item():.8f}, {norm=:.3f}, {dt=:.2f}ms, {tokens_per_sec=:.2f}')
+            print(f'step {step}: {lr=:.6f}, loss={loss_accumulation.item():.6f}, {dt=:.2f}s, {tokens_per_sec=:,}')
 
     # killing DDP processes cleanly
     if DDP:
         destroy_process_group()
 
 
-def micro_step_train(model, train_dataloader, device):
-    input_ids, targets = train_dataloader.next_batch()
+def run_micro_step(model, dataloader, device):
+    input_ids, targets = dataloader.next_batch()
     input_ids, targets = input_ids.to(device), targets.to(device)
 
     # mixed-precision training
     with torch.autocast(device_type=device, dtype=torch.bfloat16):
-        output, loss = model(input_ids, targets)
+        _, loss = model(input_ids, targets)
         
     return loss
 
@@ -140,5 +151,20 @@ def micro_step_loss_backward(loss, gradient_accumulation_steps):
     loss.backward()
     return loss_acc
 
+def run_eval(model, dataloader):
+    model.eval()
+    dataloader.reset()
+
+    with torch.no_grad():
+        loss_accumulation = .0
+        for _ in range(max_eval_steps):
+            loss = run_micro_step(model, dataloader, device)
+            loss_accumulation += loss.detach() / max_eval_steps
+        
+    if use_DDP:
+        dist.all_reduce(loss_accumulation, op=dist.ReduceOp.AVG)
+
+    model.train()
+    return loss_accumulation
 
 main()
