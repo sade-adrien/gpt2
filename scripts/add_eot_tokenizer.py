@@ -3,7 +3,7 @@ Register end of sentence/doc token (overide last one to no change the vocab size
 we need this script bc it was not included in the original training_tokenizer file...
 """
 
-from gpt2 import GPT2Tokenizer
+from gpt2_model import GPT2Tokenizer
 
 tokenizer = GPT2Tokenizer.from_pretrained('weights/gpt2tokenizer_slimpajama.model')
 

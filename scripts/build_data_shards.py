@@ -4,7 +4,7 @@ pretrained tokenizer. It then saves the data using multiple shards.
 """
 
 from datasets import load_dataset
-from gpt2 import GPT2Tokenizer
+from gpt2_model import GPT2Tokenizer
 import numpy as np
 
 local_dir = 'data/'

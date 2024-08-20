@@ -11,7 +11,7 @@ from torch.distributed import init_process_group, destroy_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
 import torch.nn as nn
-from gpt2 import *
+from gpt2_model import *
 import torch
 import time
 import json
