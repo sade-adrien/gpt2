@@ -5,7 +5,7 @@ If using DDP, run with `torchrun --standalone --nproc_per_node=2 train_gpt2.py` 
 """
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2'
 
 from torch.distributed import init_process_group, destroy_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -18,14 +18,14 @@ import json
 
 ##################################################################################################
 
-gpt2config = GPT2Config(vocab_size=50_304)      # round-up vocab_size to a dense-power-of-2 number for efficient computations
-global_batch = 524_288                          # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number
-B = 64
-T = 1024
-max_steps = 50                                  # 19_073 # 19073 is ~1 epoch for a global batch of .5M and a dataset of 10B tokens
+gpt2config = GPT2Config(vocab_size=50_304, block_size=32, n_layer=4, n_head=2, n_embd=32)      # round-up vocab_size to a dense-power-of-2 number for efficient computations
+global_batch = 64*3#524_288                          # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number
+B = 1
+T = 16
+max_steps = 20                                  # 19_073 # 19073 is ~1 epoch for a global batch of .5M and a dataset of 10B tokens
 max_val_steps = 10                             # evaluation steps to perform (eval file is 100M tokens)
-val_steps = 500                                # frequency of evaluation
-save_steps = 5                              # frequency of checkpoint saving
+val_steps = 5                                # frequency of evaluation
+save_steps = 2_000                              # frequency of checkpoint saving
 save_dir = 'weights/'                           # directory for model/log saving
 log_steps = 1                                   # frequency of logs
 log_file = save_dir + 'logs.json'               # json for easy parsing
@@ -62,9 +62,11 @@ else:
         device = 'cuda'
     elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
         device = 'mps'
-    print(f'{device=}')
 
     DDP_rank, DDP_local_rank, DDP_world_size, master_process = 0, 0, 1, True
+
+if master_process:
+    print(f'Using device: {device}')
 
 # preferably those 2 lines would have been placed one section up with the hyperparams
 # however grad_acc_steps depends of the DDP_world_size defined here
@@ -140,7 +142,7 @@ def main():
         tokens_per_sec = (train_dataloader.B * train_dataloader.T * gradient_accumulation_steps * DDP_world_size / dt)
 
         if master_process:
-            print(f'step {step}: {lr=:.6f}, loss={loss_accumulation.item():.6f}, {dt=:.2f}s, {tokens_per_sec=:,}')
+            print(f'step {step}: {lr=:.6f}, loss={loss_accumulation.item():.6f}, {dt=:.2f}s, {tokens_per_sec=:,.0f}')
         
         # update logs
         if master_process and (step % log_steps == 0):
@@ -151,7 +153,7 @@ def main():
             save_checkpoint(raw_model, optimizer, step, val_loss, lr)
 
     # killing DDP processes cleanly
-    if DDP:
+    if use_DDP:
         destroy_process_group()
 
 

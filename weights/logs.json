@@ -1,0 +1,162 @@
+[
+    {
+        "step": 0,
+        "tokens": 0,
+        "learning_rate": 0.00011999999999999999,
+        "gradient_norm": 1.4100112915039062,
+        "train_loss": 10.841796875,
+        "val_loss": 10.822786331176758
+    },
+    {
+        "step": 1,
+        "tokens": 192,
+        "learning_rate": 0.00023999999999999998,
+        "gradient_norm": 1.1306321620941162,
+        "train_loss": 10.8330078125,
+        "val_loss": null
+    },
+    {
+        "step": 2,
+        "tokens": 384,
+        "learning_rate": 0.00035999999999999997,
+        "gradient_norm": 1.3656752109527588,
+        "train_loss": 10.833984375,
+        "val_loss": null
+    },
+    {
+        "step": 3,
+        "tokens": 576,
+        "learning_rate": 0.00047999999999999996,
+        "gradient_norm": 1.1878994703292847,
+        "train_loss": 10.826823234558105,
+        "val_loss": null
+    },
+    {
+        "step": 4,
+        "tokens": 768,
+        "learning_rate": 0.0006,
+        "gradient_norm": 1.255104660987854,
+        "train_loss": 10.830078125,
+        "val_loss": null
+    },
+    {
+        "step": 5,
+        "tokens": 960,
+        "learning_rate": 0.0005999999999999998,
+        "gradient_norm": 1.1335909366607666,
+        "train_loss": 10.809896469116211,
+        "val_loss": 10.808724403381348
+    },
+    {
+        "step": 6,
+        "tokens": 1152,
+        "learning_rate": 0.0005940998521981274,
+        "gradient_norm": 1.0121958255767822,
+        "train_loss": 10.805013656616211,
+        "val_loss": null
+    },
+    {
+        "step": 7,
+        "tokens": 1344,
+        "learning_rate": 0.0005766572735635021,
+        "gradient_norm": 1.0462971925735474,
+        "train_loss": 10.791341781616211,
+        "val_loss": null
+    },
+    {
+        "step": 8,
+        "tokens": 1536,
+        "learning_rate": 0.0005484345884812357,
+        "gradient_norm": 0.8450378179550171,
+        "train_loss": 10.792318344116211,
+        "val_loss": null
+    },
+    {
+        "step": 9,
+        "tokens": 1728,
+        "learning_rate": 0.0005106652637168916,
+        "gradient_norm": 0.845089316368103,
+        "train_loss": 10.768880844116211,
+        "val_loss": null
+    },
+    {
+        "step": 10,
+        "tokens": 1920,
+        "learning_rate": 0.0004649999999999999,
+        "gradient_norm": 0.8703719973564148,
+        "train_loss": 10.753581047058105,
+        "val_loss": 10.754558563232422
+    },
+    {
+        "step": 11,
+        "tokens": 2112,
+        "learning_rate": 0.00041343458848123576,
+        "gradient_norm": 0.8113464713096619,
+        "train_loss": 10.748372077941895,
+        "val_loss": null
+    },
+    {
+        "step": 12,
+        "tokens": 2304,
+        "learning_rate": 0.0003582226850822664,
+        "gradient_norm": 0.7308262586593628,
+        "train_loss": 10.734049797058105,
+        "val_loss": null
+    },
+    {
+        "step": 13,
+        "tokens": 2496,
+        "learning_rate": 0.0003017773149177335,
+        "gradient_norm": 0.9953421950340271,
+        "train_loss": 10.694010734558105,
+        "val_loss": null
+    },
+    {
+        "step": 14,
+        "tokens": 2688,
+        "learning_rate": 0.0002465654115187642,
+        "gradient_norm": 0.8229886889457703,
+        "train_loss": 10.702474594116211,
+        "val_loss": null
+    },
+    {
+        "step": 15,
+        "tokens": 2880,
+        "learning_rate": 0.00019500000000000002,
+        "gradient_norm": 0.7633175253868103,
+        "train_loss": 10.709310531616211,
+        "val_loss": 10.717708587646484
+    },
+    {
+        "step": 16,
+        "tokens": 3072,
+        "learning_rate": 0.00014933473628310834,
+        "gradient_norm": 0.8470765948295593,
+        "train_loss": 10.702799797058105,
+        "val_loss": null
+    },
+    {
+        "step": 17,
+        "tokens": 3264,
+        "learning_rate": 0.00011156541151876421,
+        "gradient_norm": 0.80668705701828,
+        "train_loss": 10.677083969116211,
+        "val_loss": null
+    },
+    {
+        "step": 18,
+        "tokens": 3456,
+        "learning_rate": 8.334272643649772e-05,
+        "gradient_norm": 0.7231349945068359,
+        "train_loss": 10.6884765625,
+        "val_loss": null
+    },
+    {
+        "step": 19,
+        "tokens": 3648,
+        "learning_rate": 6.590014780187246e-05,
+        "gradient_norm": 0.9408509731292725,
+        "train_loss": 10.656901359558105,
+        "val_loss": 10.70820426940918
+    }
+]
