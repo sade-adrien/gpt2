@@ -7,7 +7,7 @@ import numpy as np
 import json
 
 log_file = 'weights/logs.json'
-output_image = 'metrics_plot.png'
+output_image = 'results/metrics_plot.png'
 
 with open(log_file, 'r') as file:
     data = json.load(file)

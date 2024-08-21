@@ -1,0 +1,24 @@
+bootstrapping for stddev: perplexity
+hf (pretrained=openai-community/gpt2), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 512
+|    Tasks     |Version|Filter|n-shot|    Metric     |   | Value |   |Stderr|
+|--------------|------:|------|-----:|---------------|---|------:|---|------|
+|hellaswag     |      1|none  |     0|acc            |↑  | 0.2892|±  |0.0045|
+|              |       |none  |     0|acc_norm       |↑  | 0.3114|±  |0.0046|
+|lambada_openai|      1|none  |     0|acc            |↑  | 0.3256|±  |0.0065|
+|              |       |none  |     0|perplexity     |↓  |40.0554|±  |1.4787|
+|wikitext      |      2|none  |     0|bits_per_byte  |↓  | 0.9769|±  |   N/A|
+|              |       |none  |     0|byte_perplexity|↓  | 1.9682|±  |   N/A|
+|              |       |none  |     0|word_perplexity|↓  |37.3698|±  |   N/A|
+
+bootstrapping for stddev: perplexity
+hf (pretrained=openai-community/gpt2-xl), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 64
+|    Tasks     |Version|Filter|n-shot|    Metric     |   | Value |   |Stderr|
+|--------------|------:|------|-----:|---------------|---|------:|---|------|
+|hellaswag     |      1|none  |     0|acc            |↑  | 0.4004|±  |0.0049|
+|              |       |none  |     0|acc_norm       |↑  | 0.5089|±  |0.0050|
+|lambada_openai|      1|none  |     0|acc            |↑  | 0.5121|±  |0.0070|
+|              |       |none  |     0|perplexity     |↓  |10.6341|±  |0.3292|
+|wikitext      |      2|none  |     0|bits_per_byte  |↓  | 0.8133|±  |   N/A|
+|              |       |none  |     0|byte_perplexity|↓  | 1.7572|±  |   N/A|
+|              |       |none  |     0|word_perplexity|↓  |20.3766|±  |   N/A|
+
