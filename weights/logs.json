@@ -3,23 +3,23 @@
         "step": 0,
         "tokens": 0,
         "learning_rate": 0.00011999999999999999,
-        "gradient_norm": 1.4100112915039062,
-        "train_loss": 10.841796875,
-        "val_loss": 10.822786331176758
+        "gradient_norm": 1.4116390943527222,
+        "train_loss": 10.841795921325684,
+        "val_loss": 10.84296989440918
     },
     {
         "step": 1,
         "tokens": 192,
         "learning_rate": 0.00023999999999999998,
-        "gradient_norm": 1.1306321620941162,
-        "train_loss": 10.8330078125,
+        "gradient_norm": 1.1335132122039795,
+        "train_loss": 10.833660125732422,
         "val_loss": null
     },
     {
         "step": 2,
         "tokens": 384,
         "learning_rate": 0.00035999999999999997,
-        "gradient_norm": 1.3656752109527588,
+        "gradient_norm": 1.3681936264038086,
         "train_loss": 10.833984375,
         "val_loss": null
     },
@@ -27,136 +27,136 @@
         "step": 3,
         "tokens": 576,
         "learning_rate": 0.00047999999999999996,
-        "gradient_norm": 1.1878994703292847,
-        "train_loss": 10.826823234558105,
+        "gradient_norm": 1.190282940864563,
+        "train_loss": 10.8271484375,
         "val_loss": null
     },
     {
         "step": 4,
         "tokens": 768,
         "learning_rate": 0.0006,
-        "gradient_norm": 1.255104660987854,
-        "train_loss": 10.830078125,
+        "gradient_norm": 1.2588545083999634,
+        "train_loss": 10.830404281616211,
         "val_loss": null
     },
     {
         "step": 5,
         "tokens": 960,
         "learning_rate": 0.0005999999999999998,
-        "gradient_norm": 1.1335909366607666,
+        "gradient_norm": 1.1380681991577148,
         "train_loss": 10.809896469116211,
-        "val_loss": 10.808724403381348
+        "val_loss": 10.818359375
     },
     {
         "step": 6,
         "tokens": 1152,
         "learning_rate": 0.0005940998521981274,
-        "gradient_norm": 1.0121958255767822,
-        "train_loss": 10.805013656616211,
+        "gradient_norm": 1.015411615371704,
+        "train_loss": 10.805989265441895,
         "val_loss": null
     },
     {
         "step": 7,
         "tokens": 1344,
         "learning_rate": 0.0005766572735635021,
-        "gradient_norm": 1.0462971925735474,
-        "train_loss": 10.791341781616211,
+        "gradient_norm": 1.0483607053756714,
+        "train_loss": 10.791342735290527,
         "val_loss": null
     },
     {
         "step": 8,
         "tokens": 1536,
         "learning_rate": 0.0005484345884812357,
-        "gradient_norm": 0.8450378179550171,
-        "train_loss": 10.792318344116211,
+        "gradient_norm": 0.846620500087738,
+        "train_loss": 10.792317390441895,
         "val_loss": null
     },
     {
         "step": 9,
         "tokens": 1728,
         "learning_rate": 0.0005106652637168916,
-        "gradient_norm": 0.845089316368103,
-        "train_loss": 10.768880844116211,
+        "gradient_norm": 0.8464224934577942,
+        "train_loss": 10.7685546875,
         "val_loss": null
     },
     {
         "step": 10,
         "tokens": 1920,
         "learning_rate": 0.0004649999999999999,
-        "gradient_norm": 0.8703719973564148,
-        "train_loss": 10.753581047058105,
-        "val_loss": 10.754558563232422
+        "gradient_norm": 0.871172308921814,
+        "train_loss": 10.753255844116211,
+        "val_loss": 10.759374618530273
     },
     {
         "step": 11,
         "tokens": 2112,
         "learning_rate": 0.00041343458848123576,
-        "gradient_norm": 0.8113464713096619,
-        "train_loss": 10.748372077941895,
+        "gradient_norm": 0.8129702210426331,
+        "train_loss": 10.749024391174316,
         "val_loss": null
     },
     {
         "step": 12,
         "tokens": 2304,
         "learning_rate": 0.0003582226850822664,
-        "gradient_norm": 0.7308262586593628,
-        "train_loss": 10.734049797058105,
+        "gradient_norm": 0.7315787076950073,
+        "train_loss": 10.734375953674316,
         "val_loss": null
     },
     {
         "step": 13,
         "tokens": 2496,
         "learning_rate": 0.0003017773149177335,
-        "gradient_norm": 0.9953421950340271,
-        "train_loss": 10.694010734558105,
+        "gradient_norm": 0.9969134330749512,
+        "train_loss": 10.694336891174316,
         "val_loss": null
     },
     {
         "step": 14,
         "tokens": 2688,
         "learning_rate": 0.0002465654115187642,
-        "gradient_norm": 0.8229886889457703,
-        "train_loss": 10.702474594116211,
+        "gradient_norm": 0.8244942426681519,
+        "train_loss": 10.702475547790527,
         "val_loss": null
     },
     {
         "step": 15,
         "tokens": 2880,
         "learning_rate": 0.00019500000000000002,
-        "gradient_norm": 0.7633175253868103,
+        "gradient_norm": 0.7643670439720154,
         "train_loss": 10.709310531616211,
-        "val_loss": 10.717708587646484
+        "val_loss": 10.723437309265137
     },
     {
         "step": 16,
         "tokens": 3072,
         "learning_rate": 0.00014933473628310834,
-        "gradient_norm": 0.8470765948295593,
-        "train_loss": 10.702799797058105,
+        "gradient_norm": 0.8479947447776794,
+        "train_loss": 10.703124046325684,
         "val_loss": null
     },
     {
         "step": 17,
         "tokens": 3264,
         "learning_rate": 0.00011156541151876421,
-        "gradient_norm": 0.80668705701828,
-        "train_loss": 10.677083969116211,
+        "gradient_norm": 0.8082901835441589,
+        "train_loss": 10.677409172058105,
         "val_loss": null
     },
     {
         "step": 18,
         "tokens": 3456,
         "learning_rate": 8.334272643649772e-05,
-        "gradient_norm": 0.7231349945068359,
-        "train_loss": 10.6884765625,
+        "gradient_norm": 0.7241513133049011,
+        "train_loss": 10.687824249267578,
         "val_loss": null
     },
     {
         "step": 19,
         "tokens": 3648,
         "learning_rate": 6.590014780187246e-05,
-        "gradient_norm": 0.9408509731292725,
-        "train_loss": 10.656901359558105,
-        "val_loss": 10.70820426940918
+        "gradient_norm": 0.941925585269928,
+        "train_loss": 10.655924797058105,
+        "val_loss": 10.713671684265137
     }
 ]

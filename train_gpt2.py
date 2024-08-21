@@ -37,7 +37,7 @@ eps = 1e-8
 weight_decay = 0.1
 ##################################################################################################
 # to run with DDP, use command: torchrun --standalone --nproc_per_node=2 train_gpt2.py
-use_DDP = True
+use_DDP = False
 
 # seed is absolutely needed when using DDP, to init similarly the model on all GPUs
 torch.manual_seed(42)
@@ -87,8 +87,8 @@ def main():
     raw_model = model.module if use_DDP else model
 
     tokenizer = GPT2Tokenizer.from_pretrained('weights/gpt2tokenizer_slimpajama.model') 
-    train_dataloader = DataLoaderLite(B=B , T=T, tokenizer=tokenizer, split='train', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
-    val_dataloader = DataLoaderLite(B=B , T=T, tokenizer=tokenizer, split='val', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
+    train_dataloader = DataLoaderLite(B=B , T=T, split='train', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
+    val_dataloader = DataLoaderLite(B=B , T=T, split='val', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
     optimizer = raw_model.configure_optimizer(weight_decay=weight_decay, learning_rate=max_lr, betas=betas, eps=eps, device=device)
 
     # using tf32 matmul to speed up - use `highest` for fp32 and `medium` for bf16
@@ -99,7 +99,7 @@ def main():
         # eval loop
         val_loss = None
         if (step % val_steps == 0) or (step == max_steps - 1):
-            val_loss = run_eval(model, val_dataloader)
+            val_loss = run_eval(model, val_dataloader, device)
             if master_process:
                 print(f'Validation Loss = {val_loss:.6f}')
 
@@ -173,7 +173,7 @@ def micro_step_loss_backward(loss, gradient_accumulation_steps):
     loss.backward()
     return loss_acc
 
-def run_eval(model, dataloader):
+def run_eval(model, dataloader, device):
     model.eval()
     dataloader.reset()
 

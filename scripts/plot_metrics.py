@@ -24,15 +24,29 @@ gradient_norm = [entry['gradient_norm'] for entry in data]
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6), sharex=True)
 plt.title('Metrics Over Training Steps')
 
-# first plot: losses = f(tokens)
+
+############## first plot: losses = f(tokens)
 ax1.set_xlabel('Tokens')
 ax1.set_ylabel('Loss')
 ax1.plot(tokens, train_loss, 'b-', label='Train Loss', alpha=.7)
 ax1.plot(np.array(tokens)[val_loss_mask], np.array(val_loss)[val_loss_mask], 'r-', label='Validation Loss')
-ax1.set_title('Loss Metrics')
-ax1.legend()
+ax1.axhline(y=9.507551, color='grey', linestyle='--', linewidth=1)
+ax1.axhline(y=9.808648, color='grey', linestyle='--', linewidth=1)
 
-# second plot: lr and gradient_norm = f(tokens)
+# add gpt2 baseline to first plot
+from matplotlib.lines import Line2D
+line1 = Line2D([0], [0], color='grey', linestyle='--', linewidth=1)
+line2 = Line2D([0], [0], color='grey', linestyle='--', linewidth=1)
+handles, labels = ax1.get_legend_handles_labels()
+handles.extend([line1])
+labels.extend(['Original GPT2 (124M & 1.5B)'])
+ax1.legend(handles, labels, loc='upper right')
+
+ax1.set_title('Loss Metrics')
+################################################
+
+
+############## second plot: lr and gradient_norm = f(tokens)
 ax2.set_xlabel('Tokens')
 ax2.set_ylabel('Learning Rate', color='g')
 line1, = ax2.plot(tokens, learning_rate, 'g-.', label='Learning Rate', markersize=8)
@@ -45,6 +59,7 @@ labels.extend(['Learning Rate', 'Gradient Norm'])
 ax2.legend(lines, labels, loc='upper right')
 ax2.set_title('Learning Rate and Gradient Norm')
 ax2_twin.grid(False)  
+################################################
 
 plt.tight_layout()
 

@@ -2,7 +2,6 @@
 Implement useful classes and functions.
 """
 
-from .tokenizer import GPT2Tokenizer
 import numpy as np
 import torch
 import math
@@ -16,12 +15,12 @@ def load_tokens_from_npy(file_name):
 class DataLoaderLite:
     """ Data loader for data batch loading """
 
-    def __init__(self, B, T, tokenizer, split, master_process, process_rank=0, num_processes=1):
+    def __init__(self, B, T, split, master_process=True, process_rank=0, num_processes=1):
         self.B = B
         self.T = T
         self.process_rank = process_rank
         self.num_processes = num_processes
-        assert split in ('train', 'val')
+        assert split in ('train', 'val', 'original_gpt2')
 
         data_folder = 'data'
         shards = os.listdir(data_folder)
