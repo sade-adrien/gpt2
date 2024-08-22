@@ -9,6 +9,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2'
 
 from torch.distributed import init_process_group, destroy_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
+from scripts.hellaswag_eval import hellaswag_evaluation
 import torch.distributed as dist
 import torch.nn as nn
 from gpt2_model import *
@@ -18,26 +19,26 @@ import json
 
 ##################################################################################################
 
-gpt2config = GPT2Config(vocab_size=50_304, block_size=32, n_layer=4, n_head=2, n_embd=32)      # round-up vocab_size to a dense-power-of-2 number for efficient computations
-global_batch = 64*3#524_288                          # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number
-B = 1
-T = 16
-max_steps = 20                                  # 19_073 # 19073 is ~1 epoch for a global batch of .5M and a dataset of 10B tokens
-max_val_steps = 10                             # evaluation steps to perform (eval file is 100M tokens)
-val_steps = 5                                # frequency of evaluation
-save_steps = 2_000                              # frequency of checkpoint saving
+gpt2config = GPT2Config(vocab_size=50_304)      # round-up vocab_size to a dense-power-of-2 number for efficient computations
+global_batch = 3 * 2**17                        # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number -- Actually we use a number close to .5M with 3 as factor as we'll be using 3 GPUs
+B = 64
+T = 1024
+max_steps = 25_431                              # 35431  is ~1 epoch for a global batch of 3*2**17 and a dataset of 10B tokens
+max_val_steps = 254                             # evaluation steps to perform (eval file is 100M tokens)
+val_steps = 1_500                               # frequency of evaluation
+save_steps = 5_000                              # frequency of checkpoint saving
 save_dir = 'weights/'                           # directory for model/log saving
 log_steps = 1                                   # frequency of logs
 log_file = save_dir + 'logs.json'               # json for easy parsing
-warmup_steps = 5
+warmup_steps = 953                              # linear warmup over the first 375M tokens as in GPT3 training
 max_lr = 6e-4
-min_lr = max_lr / 10
+min_lr = max_lr * .1
 betas = (.9, .95)
 eps = 1e-8
 weight_decay = 0.1
 ##################################################################################################
 # to run with DDP, use command: torchrun --standalone --nproc_per_node=2 train_gpt2.py
-use_DDP = False
+use_DDP = True
 
 # seed is absolutely needed when using DDP, to init similarly the model on all GPUs
 torch.manual_seed(42)
@@ -81,7 +82,7 @@ with open(log_file, "w") as file:
 
 def main():
     model = GPT2(gpt2config).to(device)                # 50_304 is dense-power-of-2 number
-    # model = torch.compile(model)
+    model = torch.compile(model)
     if use_DDP:
         model = DDP(model, device_ids=[DDP_local_rank])
     raw_model = model.module if use_DDP else model
@@ -97,11 +98,12 @@ def main():
     for step in range(max_steps):
 
         # eval loop
-        val_loss = None
+        val_loss, hellaswag_acc, hellaswag_acc_norm = None, None, None
         if (step % val_steps == 0) or (step == max_steps - 1):
             val_loss = run_eval(model, val_dataloader, device)
+            hellaswag_acc, hellaswag_acc_norm = run_hellaswag_eval(raw_model, tokenizer, device)
             if master_process:
-                print(f'Validation Loss = {val_loss:.6f}')
+                print(f'Step {step}: Validation Loss={val_loss:.6f}, hellaswag accuracy={hellaswag_acc:.3f}, hellaswag accuracy_norm={hellaswag_acc_norm:.3f}')
 
         # run 1 training step
         start = time.time()
@@ -146,7 +148,7 @@ def main():
         
         # update logs
         if master_process and (step % log_steps == 0):
-            save_log(step, lr, norm, loss_accumulation, val_loss)
+            save_log(step, lr, norm, loss_accumulation, val_loss, hellaswag_acc, hellaswag_acc_norm)
         
         # save checkpoint
         if master_process and step > 0 and (step % save_steps == 0 or step == max_steps - 1):
@@ -189,7 +191,22 @@ def run_eval(model, dataloader, device):
     model.train()
     return loss_accumulation
 
-def save_log(step, lr, norm, train_loss, val_loss):
+def run_hellaswag_eval(model, tokenizer, device):
+    model.eval()
+
+    acc, acc_norm = hellaswag_evaluation(model, tokenizer, device, DDP_rank, DDP_world_size)
+
+    if use_DDP:
+        acc, acc_norm = torch.tensor(acc, dtype=torch.float32, device=device), torch.tensor(acc_norm, dtype=torch.float32, device=device)       # need tensor to share accross GPUs
+        dist.all_reduce(acc, op=dist.ReduceOp.AVG)
+        dist.all_reduce(acc_norm, op=dist.ReduceOp.AVG)        
+        acc, acc_norm = acc.item(), acc_norm.item()
+
+    model.train()
+
+    return acc, acc_norm
+
+def save_log(step, lr, norm, train_loss, val_loss, hellaswag_acc, hellaswag_acc_norm):
     log = {
         'step': step,
         'tokens': step * global_batch,
@@ -197,6 +214,8 @@ def save_log(step, lr, norm, train_loss, val_loss):
         'gradient_norm': norm.item(),
         'train_loss': train_loss.item(),
         'val_loss': val_loss.item() if val_loss else None,
+        'hellaswag_acc': hellaswag_acc,
+        'hellaswag_acc_norm': hellaswag_acc_norm,
     }
 
     with open(log_file, 'r') as file:

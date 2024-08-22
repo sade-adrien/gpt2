@@ -1,11 +1,14 @@
 """
 Evaluate a model on the hellaswag task (text prediction).
+Original GPT2-small yields acc=0.286 , acc_norm=0.296
+Original GPT2-xl yields acc=0.384, acc_norm=0.489
 """
 
 from torch.nn import functional as F
 import torch
+import json
 
-val_file = 'data/hellaswag_val.jsonl'
+val_file = 'data/hellaswag.jsonl'
 
 def flatten_list(l):
     result = []
@@ -54,12 +57,14 @@ def iterate_data(file_name):
             data = json.loads(line)
             yield data
 
-def hellaswag_evaluation(model, tokenizer, device):
+def hellaswag_evaluation(model, tokenizer, device, DDP_rank=0, DDP_world_size=1):
+    torch.set_float32_matmul_precision('high')
+
     num_correct_norm, num_correct, num_total = 0, 0, 0
 
     for i, example in enumerate(iterate_data(val_file)):
-        if i % 100 == 0:
-            print(f'{i}/{10_042}')
+        if i % DDP_world_size != DDP_rank:
+                continue
         tokens, mask, label = render_example(example, tokenizer)
         tokens, mask = tokens.to(device), mask.to(device)
         
@@ -100,18 +105,18 @@ def hellaswag_evaluation(model, tokenizer, device):
 
 
 
-import os
-os.environ['CUDA_VISIBLE_DEVICE'] = '0'
+if __name__ == '__main__':
+    import os
+    os.environ['CUDA_VISIBLE_DEVICE'] = '0'
 
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
-# from gpt2_model import GPT2Tokenizer, GPT2, GPT2Config
-import json
-import torch
+    from transformers import GPT2Tokenizer, GPT2LMHeadModel
+    # from gpt2_model import GPT2Tokenizer, GPT2, GPT2Config
+    import json
+    import torch
 
-torch.set_float32_matmul_precision('high') # use tf32
-tok = GPT2Tokenizer.from_pretrained('gpt2')
-mod = GPT2LMHeadModel.from_pretrained('gpt2', torch_dtype=torch.bfloat16, device_map='cuda:0')
-mod = torch.compile(mod)
-acc, acc_norm = hellaswag_evaluation(mod,tok,'cuda:0')
+    tok = GPT2Tokenizer.from_pretrained('gpt2-xl')
+    mod = GPT2LMHeadModel.from_pretrained('gpt2-xl', torch_dtype=torch.bfloat16, device_map='cuda:0')
+    mod = torch.compile(mod)
+    acc, acc_norm = hellaswag_evaluation(mod,tok,'cuda:0')
 
-print(f'GPT2 small - custom hellaswag: {acc=:.3f}, {acc_norm:.3f}')
+    print(f'GPT2 small - custom hellaswag: {acc=:.3f}, {acc_norm:.3f}')
