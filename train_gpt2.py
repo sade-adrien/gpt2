@@ -5,14 +5,15 @@ If using DDP, run with `torchrun --standalone --nproc_per_node=2 train_gpt2.py` 
 """
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
 from torch.distributed import init_process_group, destroy_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
 from scripts.hellaswag_eval import hellaswag_evaluation
 import torch.distributed as dist
-import torch.nn as nn
 from gpt2_model import *
+import torch.nn as nn
+from tqdm import tqdm
 import torch
 import time
 import json
@@ -20,17 +21,17 @@ import json
 ##################################################################################################
 
 gpt2config = GPT2Config(vocab_size=50_304)      # round-up vocab_size to a dense-power-of-2 number for efficient computations
-global_batch = 3 * 2**17                        # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number -- Actually we use a number close to .5M with 3 as factor as we'll be using 3 GPUs
+global_batch = 2**19                            # global batch size to fit gpt2 batch for 125M params (B=.5M) with a dense-power-of-2 number
 B = 64
 T = 1024
-max_steps = 25_431                              # 35431  is ~1 epoch for a global batch of 3*2**17 and a dataset of 10B tokens
-max_val_steps = 254                             # evaluation steps to perform (eval file is 100M tokens)
-val_steps = 1_500                               # frequency of evaluation
-save_steps = 5_000                              # frequency of checkpoint saving
+max_steps = 19_073                              # ~1 epoch for the above global batch and a dataset of 10B tokens
+max_val_steps = 190                             # evaluation steps to perform (eval file is 100M tokens)
+val_steps = 1_000                               # frequency of evaluation
+save_steps = 2_000                              # frequency of checkpoint saving
 save_dir = 'weights/'                           # directory for model/log saving
 log_steps = 1                                   # frequency of logs
 log_file = save_dir + 'logs.json'               # json for easy parsing
-warmup_steps = 953                              # linear warmup over the first 375M tokens as in GPT3 training
+warmup_steps = 715                              # linear warmup over the first 375M tokens as in GPT3 training
 max_lr = 6e-4
 min_lr = max_lr * .1
 betas = (.9, .95)
@@ -82,10 +83,14 @@ with open(log_file, "w") as file:
 
 def main():
     model = GPT2(gpt2config).to(device)                # 50_304 is dense-power-of-2 number
-    model = torch.compile(model)
+    # model = torch.compile(model)                     # for unkown reasons, compilation breaks the hellaswag eval...
     if use_DDP:
         model = DDP(model, device_ids=[DDP_local_rank])
     raw_model = model.module if use_DDP else model
+
+    if master_process:
+        print(f'Training a GPT2-{sum(p.numel() for p in raw_model.parameters()):.3e} on our SlimPajam subset.')
+
 
     tokenizer = GPT2Tokenizer.from_pretrained('weights/gpt2tokenizer_slimpajama.model') 
     train_dataloader = DataLoaderLite(B=B , T=T, split='train', master_process=master_process, process_rank=DDP_rank, num_processes=DDP_world_size)
@@ -95,13 +100,13 @@ def main():
     # using tf32 matmul to speed up - use `highest` for fp32 and `medium` for bf16
     torch.set_float32_matmul_precision('high')         # we notice no consistent speed up when combined with mixed-precision on A100, autocast probably overides this                      
 
-    for step in range(max_steps):
+    for step in tqdm(range(max_steps)):
 
         # eval loop
         val_loss, hellaswag_acc, hellaswag_acc_norm = None, None, None
         if (step % val_steps == 0) or (step == max_steps - 1):
             val_loss = run_eval(model, val_dataloader, device)
-            hellaswag_acc, hellaswag_acc_norm = run_hellaswag_eval(raw_model, tokenizer, device)
+            hellaswag_acc, hellaswag_acc_norm = run_hellaswag_eval(model, tokenizer, device)
             if master_process:
                 print(f'Step {step}: Validation Loss={val_loss:.6f}, hellaswag accuracy={hellaswag_acc:.3f}, hellaswag accuracy_norm={hellaswag_acc_norm:.3f}')
 

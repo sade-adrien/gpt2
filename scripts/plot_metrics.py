@@ -32,7 +32,7 @@ plt.title('Metrics Over Training Steps')
 ############## first plot: losses = f(tokens)
 ax1.set_xlabel('Tokens')
 ax1.set_ylabel('Loss')
-ax1.plot(tokens, train_loss, 'b-', label='Train Loss', alpha=.7)
+ax1.plot(tokens, train_loss, 'b-', label='Train Loss', alpha=.6)
 ax1.plot(np.array(tokens)[val_loss_mask], np.array(val_loss)[val_loss_mask], 'r-', label='Validation Loss')
 
 # add gpt2 baseline to first plot
@@ -43,6 +43,7 @@ handles, labels = ax1.get_legend_handles_labels()
 handles.extend([line])
 labels.extend(['Original GPT2-124M'])
 ax1.legend(handles, labels, loc='upper right')
+ax1.set_ylim(2., 7.)
 
 ax1.set_title('Loss Metrics')
 ################################################
@@ -60,14 +61,16 @@ ax2.axhline(y=0.2859, color='b', linestyle='--', linewidth=1) # acc GPT2 small
 line1 = Line2D([0], [0], color='b', linestyle='--', linewidth=1)
 ax2.axhline(y=0.2955, color='r', linestyle='--', linewidth=1) # acc_norm GPT2 small
 line2 = Line2D([0], [0], color='r', linestyle='-.', linewidth=1)
-ax2.axhline(y=0.3842, color='b', linestyle='-.', linewidth=1) # acc GPT2 xl
-line3 = Line2D([0], [0], color='b', linestyle='-.', linewidth=1)
-ax2.axhline(y=0.4893, color='r', linestyle='-.', linewidth=1) # acc_norm GPT2 xl
-line4 = Line2D([0], [0], color='r', linestyle='-.', linewidth=1)
+# ax2.axhline(y=0.3842, color='b', linestyle='-.', linewidth=1) # acc GPT2 xl
+# line3 = Line2D([0], [0], color='b', linestyle='-.', linewidth=1)
+# ax2.axhline(y=0.4893, color='r', linestyle='-.', linewidth=1) # acc_norm GPT2 xl
+# line4 = Line2D([0], [0], color='r', linestyle='-.', linewidth=1)
 
 handles, labels = ax2.get_legend_handles_labels()
-handles.extend([line1, line3, line2, line4])
-labels.extend(['GPT2-124M acc', 'GPT2-1.5B acc', 'GPT2-124M acc_norm', 'GPT2-1.5B acc_norm'])
+# handles.extend([line1, line3, line2, line4])
+# labels.extend(['GPT2-124M acc', 'GPT2-1.5B acc', 'GPT2-124M acc_norm', 'GPT2-1.5B acc_norm'])
+handles.extend([line1, line2])
+labels.extend(['GPT2-124M acc', 'GPT2-124M acc_norm'])
 ax2.legend(handles, labels, loc='upper right')
 
 ax2.set_title('Hellaswag Accuracy')
@@ -77,10 +80,10 @@ ax2.set_title('Hellaswag Accuracy')
 ############## third plot: lr and gradient_norm = f(tokens)
 ax3.set_xlabel('Tokens')
 ax3.set_ylabel('Learning Rate', color='g')
-line1, = ax3.plot(tokens, learning_rate, 'g:', label='Learning Rate', markersize=8)
+line1, = ax3.plot(tokens, learning_rate, 'g--', label='Learning Rate', markersize=8)
 ax3_twin = ax3.twinx()
 ax3_twin.set_ylabel('Gradient Norm', color='k')
-line2, = ax3_twin.plot(tokens, gradient_norm, 'k--', label='Gradient Norm')
+line2, = ax3_twin.plot(tokens, gradient_norm, 'k--', label='Gradient Norm', alpha=.3)
 lines, labels = [], []
 lines.extend([line1, line2])
 labels.extend(['Learning Rate', 'Gradient Norm'])
