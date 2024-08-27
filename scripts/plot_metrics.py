@@ -35,7 +35,7 @@ ax1.set_ylabel('Loss')
 ax1.plot(tokens, train_loss, 'b-', label='Train Loss', alpha=.6)
 ax1.plot(np.array(tokens)[val_loss_mask], np.array(val_loss)[val_loss_mask], 'r-', label='Validation Loss')
 ax1.legend(loc='upper right')
-ax1.set_ylim(3., 5.)
+ax1.set_ylim(2., 5.)
 
 ax1.set_title('Loss Metrics')
 ################################################
@@ -63,7 +63,7 @@ handles, labels = ax2.get_legend_handles_labels()
 # labels.extend(['GPT2-124M acc', 'GPT2-1.5B acc', 'GPT2-124M acc_norm', 'GPT2-1.5B acc_norm'])
 handles.extend([line1, line2])
 labels.extend(['GPT2-124M acc', 'GPT2-124M acc_norm'])
-ax2.legend(handles, labels, loc='upper right')
+ax2.legend(handles, labels, loc='upper left')
 
 ax2.set_title('Hellaswag Accuracy')
 ################################################

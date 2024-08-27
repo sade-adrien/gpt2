@@ -29,7 +29,7 @@ val_steps = 300                                 # frequency of evaluation
 save_steps = int(max_steps / 10)                # frequency of checkpoint saving (~10 saves)
 save_dir = 'weights/'                           # directory for model/log saving
 log_steps = 1                                   # frequency of logs
-log_file = save_dir + 'logs.json'               # json for easy parsing
+log_file = save_dir + 'logs_resume.json'               # json for easy parsing
 warmup_steps = int(3.75e8 / global_batch)       # linear warmup over the first 375M tokens as in GPT3 training
 max_lr = 6e-4
 min_lr = max_lr * .1
@@ -103,11 +103,18 @@ def main():
     # using tf32 matmul to speed up - use `highest` for fp32 and `medium` for bf16
     torch.set_float32_matmul_precision('high')         # we notice no consistent speed up when combined with mixed-precision on A100, autocast probably overides this                      
 
-    for step in tqdm(range(checkpoint['step']+1, max_steps)):
+    for step in tqdm(range(max_steps)):
+        # align data on right token and move on until current resume step
+        if step <= checkpoint['step'] :
+            if master_process:
+                print(f'{train_dataloader.current_shard=}, {train_dataloader.current_position=}')
+            for micro_step in range(gradient_accumulation_steps):
+                train_dataloader.next_batch()
+            continue
 
         # eval loop
         val_loss, hellaswag_acc, hellaswag_acc_norm = None, None, None
-        if (step % val_steps == 0) or (step == max_steps - 1):
+        if (step % val_steps == 0) or (step == max_steps - 1) or (step == checkpoint['step'] + 1):
             val_loss = run_eval(model, val_dataloader, device)
             hellaswag_acc, hellaswag_acc_norm = run_hellaswag_eval(model, tokenizer, device)
             if master_process:
