@@ -4,7 +4,7 @@ We'll use these losses to compare with our custom GPT2 training.
 """
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 from gpt2_model import DataLoaderLite
 from transformers import GPT2LMHeadModel
@@ -46,7 +46,10 @@ model = torch.compile(model)
 model.eval()
 eval_loss = run_eval(model, dataloader, device)
 
-print(f'Original GPT2-{sum(p.numel() for p in model.parameters()):.2e} scores on our SlimPajam eval subset a loss={eval_loss:.6f}.')
+print(f'Original GPT2-{sum(p.numel() for p in model.parameters()):.2e} scores on our subset a loss={eval_loss:.6f}.')
 
-# GPT2-124M --> eval_loss=9.507551
-# GPT2-1.5B --> eval_loss=9.808648 (?)
+# Slimpajama GPT2-124M --> eval_loss=9.507551
+# Slimpajama GPT2-1.5B --> eval_loss=9.808648 (?)
+
+# Fineweb-edu GPT2-124M --> eval_loss=9.689992
+# Fineweb-edu GPT2-1.5B --> eval_loss=

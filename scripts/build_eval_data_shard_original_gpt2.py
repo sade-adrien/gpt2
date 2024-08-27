@@ -20,7 +20,7 @@ val_file = 'data/val_data.npy'
 dataset = load_tokens_from_npy(val_file)
 
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2', use_auth_token=False)
-custom_tokenizer = gpt2.GPT2Tokenizer.from_pretrained('weights/gpt2tokenizer_slimpajama.model')
+custom_tokenizer = gpt2.GPT2Tokenizer.from_pretrained('weights/gpt2tokenizer_fineweb-edu.model')
 
 text = custom_tokenizer.decode(dataset)
 

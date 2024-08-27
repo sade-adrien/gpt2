@@ -1,0 +1,27 @@
+W0827 11:10:54.253000 139880034649280 torch/distributed/run.py:779] 
+W0827 11:10:54.253000 139880034649280 torch/distributed/run.py:779] *****************************************
+W0827 11:10:54.253000 139880034649280 torch/distributed/run.py:779] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0827 11:10:54.253000 139880034649280 torch/distributed/run.py:779] *****************************************
+Using device: cuda:0
+/mnt/datascience1/Adrien/gpt2/train_gpt2_resume_training.py:85: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(checkpoint_path)
+/mnt/datascience1/Adrien/gpt2/train_gpt2_resume_training.py:85: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(checkpoint_path)
+Training a GPT2-1.245e+08.
+Found 159 shards for train split.
+Found 1 shards for val split.
+  0%|          | 0/15165 [00:00<?, ?it/s]  0%|          | 0/15165 [00:00<?, ?it/s]  0%|          | 1/15165 [00:01<8:11:02,  1.94s/it]step 15161: lr=0.000340, loss=3.142494, dt=1.97s, tokens_per_sec=266,523
+  0%|          | 1/15165 [00:01<8:17:16,  1.97s/it]  0%|          | 2/15165 [00:03<7:48:40,  1.85s/it]step 15162: lr=0.000340, loss=3.025889, dt=1.79s, tokens_per_sec=292,552
+  0%|          | 2/15165 [00:03<7:51:13,  1.86s/it]  0%|          | 3/15165 [00:05<7:41:46,  1.83s/it]step 15163: lr=0.000340, loss=3.077727, dt=1.79s, tokens_per_sec=292,159
+  0%|          | 3/15165 [00:05<7:43:09,  1.83s/it]  0%|          | 4/15165 [00:07<7:38:39,  1.82s/it]step 15164: lr=0.000340, loss=3.078392, dt=1.80s, tokens_per_sec=291,922
+  0%|          | 4/15165 [00:07<7:39:30,  1.82s/it]  0%|          | 5/15165 [00:09<7:36:53,  1.81s/it]step 15165: lr=0.000340, loss=3.082357, dt=1.80s, tokens_per_sec=291,992
+  0%|          | 5/15165 [00:09<7:37:25,  1.81s/it]  0%|          | 6/15165 [00:10<7:35:57,  1.80s/it]step 15166: lr=0.000340, loss=3.071778, dt=1.80s, tokens_per_sec=291,719
+  0%|          | 6/15165 [00:10<7:36:33,  1.81s/it]step 15167: lr=0.000340, loss=3.103257, dt=1.80s, tokens_per_sec=291,054  0%|          | 7/15165 [00:12<7:35:56,  1.80s/it]
+  0%|          | 7/15165 [00:12<7:36:06,  1.81s/it]  0%|          | 8/15165 [00:14<7:35:11,  1.80s/it]step 15168: lr=0.000340, loss=3.029060, dt=1.80s, tokens_per_sec=292,021
+  0%|          | 8/15165 [00:14<7:35:18,  1.80s/it]  0%|          | 9/15165 [00:16<7:34:36,  1.80s/it]step 15169: lr=0.000340, loss=3.072754, dt=1.79s, tokens_per_sec=292,192
+  0%|          | 9/15165 [00:16<7:34:41,  1.80s/it]  0%|          | 10/15165 [00:18<7:34:17,  1.80s/it]step 15170: lr=0.000340, loss=3.068956, dt=1.80s, tokens_per_sec=291,993
+  0%|          | 10/15165 [00:18<7:34:21,  1.80s/it]  0%|          | 11/15165 [00:19<7:34:07,  1.80s/it]step 15171: lr=0.000340, loss=3.071273, dt=1.80s, tokens_per_sec=291,873
+  0%|          | 11/15165 [00:19<7:34:10,  1.80s/it]  0%|          | 12/15165 [00:21<7:34:08,  1.80s/it]step 15172: lr=0.000340, loss=3.083483, dt=1.80s, tokens_per_sec=291,612
+  0%|          | 12/15165 [00:21<7:34:23,  1.80s/it]  0%|          | 13/15165 [00:23<7:34:41,  1.80s/it]step 15173: lr=0.000340, loss=3.084028, dt=1.80s, tokens_per_sec=290,890
+  0%|          | 13/15165 [00:23<7:34:38,  1.80s/it]  0%|          | 14/15165 [00:25<7:34:42,  1.80s/it]step 15174: lr=0.000340, loss=3.076215, dt=1.80s, tokens_per_sec=291,189
+  0%|          | 14/15165 [00:25<7:34:40,  1.80s/it]

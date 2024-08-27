@@ -70,3 +70,12 @@ def get_lr(step, warmup_steps, max_steps, min_lr, max_lr):
     assert 0 <= decay_ratio <= 1
     coeff = 0.5 * (1. + math.cos(math.pi * decay_ratio))
     return min_lr + coeff * (max_lr - min_lr)
+
+def flatten_list(l):
+    result = []
+    for i in l:
+        if isinstance(i, list):
+            result.extend(flatten_list(i))
+        else:
+            result.append(i)
+    return result

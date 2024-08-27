@@ -159,7 +159,7 @@ class GPT2(nn.Module):
 
         for _ in range(max_new_tokens):
             with torch.no_grad():
-                logits = self.forward(input_ids)
+                logits = self.forward(input_ids)[0]
                 logits = logits[:, -1, :]
 
                 probs = F.softmax(logits, dim=-1)
@@ -223,6 +223,24 @@ class GPT2(nn.Module):
                     sd[k].copy_(sd_hf[k])
 
         return model
+
+    @classmethod        # decorator for method to be called directly on the class rather than the object
+    def from_checkpoint(cls, checkpoint_path, device):
+        """Loads locally pretrained GPT-2 model (and optimizer...)"""
+
+        checkpoint = torch.load(checkpoint_path, weights_only=False)
+        model = GPT2(checkpoint['config']).to(device)
+        model.load_state_dict(checkpoint['model'])
+
+        optimizer = model.configure_optimizer(weight_decay=checkpoint['optimizer']['param_groups'][0]['weight_decay'],
+                                            learning_rate=checkpoint['learning_rate']['max_lr'],
+                                            device=device,
+                                            betas=checkpoint['optimizer']['param_groups'][0]['betas'],
+                                            eps=checkpoint['optimizer']['param_groups'][0]['eps'],
+                                            )
+        optimizer.load_state_dict(checkpoint['optimizer'])
+
+        return model, optimizer
 
     def configure_optimizer(self, weight_decay, learning_rate, device, betas=(0.9, 0.999), eps=1e-8, verbose=False):
         params_dict = {n: p for n,p in self.named_parameters() if p.requires_grad}

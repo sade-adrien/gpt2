@@ -34,16 +34,8 @@ ax1.set_xlabel('Tokens')
 ax1.set_ylabel('Loss')
 ax1.plot(tokens, train_loss, 'b-', label='Train Loss', alpha=.6)
 ax1.plot(np.array(tokens)[val_loss_mask], np.array(val_loss)[val_loss_mask], 'r-', label='Validation Loss')
-
-# add gpt2 baseline to first plot
-from matplotlib.lines import Line2D
-ax1.axhline(y=9.507551, color='grey', linestyle='--', linewidth=1)
-line = Line2D([0], [0], color='grey', linestyle='--', linewidth=1)
-handles, labels = ax1.get_legend_handles_labels()
-handles.extend([line])
-labels.extend(['Original GPT2-124M'])
-ax1.legend(handles, labels, loc='upper right')
-ax1.set_ylim(2., 7.)
+ax1.legend(loc='upper right')
+ax1.set_ylim(3., 5.)
 
 ax1.set_title('Loss Metrics')
 ################################################

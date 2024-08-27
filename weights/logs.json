@@ -1,0 +1,142 @@
+[
+    {
+        "step": 15161,
+        "tokens": 7948730368,
+        "learning_rate": 0.0003402956590745824,
+        "gradient_norm": 0.31769508123397827,
+        "train_loss": 3.1424942016601562,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15162,
+        "tokens": 7949254656,
+        "learning_rate": 0.00034026703407644354,
+        "gradient_norm": 0.30137166380882263,
+        "train_loss": 3.0258893966674805,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15163,
+        "tokens": 7949778944,
+        "learning_rate": 0.0003402384089627363,
+        "gradient_norm": 0.30889734625816345,
+        "train_loss": 3.0777268409729004,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15164,
+        "tokens": 7950303232,
+        "learning_rate": 0.0003402097837337832,
+        "gradient_norm": 0.31422024965286255,
+        "train_loss": 3.0783920288085938,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15165,
+        "tokens": 7950827520,
+        "learning_rate": 0.00034018115838990617,
+        "gradient_norm": 0.29886120557785034,
+        "train_loss": 3.082357406616211,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15166,
+        "tokens": 7951351808,
+        "learning_rate": 0.00034015253293142754,
+        "gradient_norm": 0.2723120152950287,
+        "train_loss": 3.071777820587158,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15167,
+        "tokens": 7951876096,
+        "learning_rate": 0.00034012390735866944,
+        "gradient_norm": 0.3481525182723999,
+        "train_loss": 3.103256940841675,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15168,
+        "tokens": 7952400384,
+        "learning_rate": 0.0003400952816719542,
+        "gradient_norm": 0.28386250138282776,
+        "train_loss": 3.029059886932373,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15169,
+        "tokens": 7952924672,
+        "learning_rate": 0.0003400666558716039,
+        "gradient_norm": 0.3657260537147522,
+        "train_loss": 3.07275390625,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15170,
+        "tokens": 7953448960,
+        "learning_rate": 0.0003400380299579409,
+        "gradient_norm": 0.29110103845596313,
+        "train_loss": 3.0689563751220703,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15171,
+        "tokens": 7953973248,
+        "learning_rate": 0.00034000940393128735,
+        "gradient_norm": 0.31603768467903137,
+        "train_loss": 3.0712733268737793,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15172,
+        "tokens": 7954497536,
+        "learning_rate": 0.00033998077779196547,
+        "gradient_norm": 0.3259647488594055,
+        "train_loss": 3.083482503890991,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15173,
+        "tokens": 7955021824,
+        "learning_rate": 0.00033995215154029754,
+        "gradient_norm": 0.29671910405158997,
+        "train_loss": 3.0840277671813965,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    },
+    {
+        "step": 15174,
+        "tokens": 7955546112,
+        "learning_rate": 0.00033992352517660566,
+        "gradient_norm": 0.34897103905677795,
+        "train_loss": 3.0762147903442383,
+        "val_loss": null,
+        "hellaswag_acc": null,
+        "hellaswag_acc_norm": null
+    }
+]

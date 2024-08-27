@@ -2,6 +2,7 @@
 Define Tokenizer class (base) and the GPT2Tokenizer class wrapper to implement specific behavior of GPT2 Tokenizer.
 """
 
+from .utils import flatten_list
 from typing import Union, List
 import regex as re
 import unicodedata
@@ -212,6 +213,9 @@ class GPT2Tokenizer(Tokenizer):
         """
         Returns string from integer ids.
         """
+        if isinstance(ids, torch.Tensor):
+            ids = ids.tolist()
+        ids = flatten_list(ids)
 
         bytes_ids = []
         for idx in ids:
