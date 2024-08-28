@@ -1,5 +1,5 @@
 """
-Script to train a GPT2 model with the SlimPajama dataset and using a pre-trained GPT2Tokenizer (re-implemantation).
+Script to train a GPT2 model using a pre-trained GPT2Tokenizer (re-implemantation).
 Script can be run with `python train_gpt2.py` if not using DDP (ensure use_DDP=False).
 If using DDP, run with `torchrun --standalone --nproc_per_node=2 train_gpt2.py` (and change the nb of gpu/node accordingly).
 """

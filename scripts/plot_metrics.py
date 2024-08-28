@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
-log_file = 'weights/logs.json'
+# log_file = 'weights/logs.json'
+log_file = 'weights/fineweb-edu-15b/logs.json'
 output_image = 'results/metrics_plot.png'
 
 with open(log_file, 'r') as file:
@@ -35,7 +36,7 @@ ax1.set_ylabel('Loss')
 ax1.plot(tokens, train_loss, 'b-', label='Train Loss', alpha=.6)
 ax1.plot(np.array(tokens)[val_loss_mask], np.array(val_loss)[val_loss_mask], 'r-', label='Validation Loss')
 ax1.legend(loc='upper right')
-ax1.set_ylim(2., 5.)
+ax1.set_ylim(2., 8.)
 
 ax1.set_title('Loss Metrics')
 ################################################
