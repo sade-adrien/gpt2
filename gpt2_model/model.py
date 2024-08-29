@@ -150,7 +150,7 @@ class GPT2(nn.Module):
             if hasattr(module, 'bias') and module.bias is not None:
                 torch.nn.init.zeros_(module.bias) 
 
-    def generate(self, input_ids, max_new_tokens=100, do_sample=False, topk=50):
+    def generate(self, input_ids, max_new_tokens=100, do_sample=False, topk=50, eot=None):
         if isinstance(input_ids, list):
             input_ids = torch.tensor(input_ids, dtype=torch.long, device=self.transformer.wte.weight.device).view(1, -1)
 
@@ -165,11 +165,14 @@ class GPT2(nn.Module):
                 probs = F.softmax(logits, dim=-1)
 
                 topk_probs, topk_indices = torch.topk(probs, topk, dim=-1)
-                indices = torch.multinomial(topk_probs, 1)
-                new_tokens = torch.gather(topk_indices, -1, indices)
+                index = torch.multinomial(topk_probs, 1)
+                new_token = torch.gather(topk_indices, -1, index)
 
-                input_ids = torch.concat((input_ids, new_tokens), dim=-1)
+                input_ids = torch.concat((input_ids, new_token), dim=-1)
             
+            if eot is not None and new_token.item() == eot:
+                break
+
         return input_ids
     
     @classmethod        # decorator for method to be called directly on the class rather than the object
